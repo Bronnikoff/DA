@@ -4,12 +4,9 @@
 #include <fstream>
 #include <string>
 #include <vector>
-#include <sstream>
-#include <stdlib.h>
 #include <cstdlib>
-#include <algorithm>
 
-#define NUMBER_OF_TESTS 9000
+#define NUMBER_OF_TESTS 110000
 
 
 int main ()
@@ -21,25 +18,27 @@ int main ()
     srand(time(0));
     int random_number, random_number_1;
     file.open("./file");
-    for (int i = 0; i < NUMBER_OF_TESTS; i++) { // Добавление в Бдерево
+    for (int i = 0; i < NUMBER_OF_TESTS; i++) {
         random_number = 1 + rand() % 256;
         std::string str;
         for (int i = 0; i < random_number; i++) {
             random_number_1 = rand() % (alphabet.size() - 1);
             str += alphabet[random_number_1];
-            //std::cout << alphabet.size() << " " << random_number_1 << " " << vector_string[i] << std::endl;
         }
         vector_string.push_back(str);
-        file << "+ " << vector_string[i] << " 0" << std::endl;
+        file << "+ " << vector_string[i] << ' ' << rand() << std::endl;
     }
-    for (int i = 0; i < NUMBER_OF_TESTS; i++) { // перемешивание вектора
+    for (int i = 0; i < NUMBER_OF_TESTS; i++) {
         random_number = rand() % (vector_string.size() - 1);
         random_number_1 = rand() % (vector_string.size() - 1);
         std::swap(vector_string[random_number], vector_string[random_number_1]);
     }
 
     for (int i = 0; i < NUMBER_OF_TESTS; i++) {
+        file << vector_string[i] << std::endl;
         file << "- " << vector_string[i] << std::endl;
     }
+    file << "! Save loadfile" << std::endl;
+    file << "! Load loadfile" << std::endl;
     return 0;
 }
