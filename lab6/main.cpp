@@ -366,12 +366,15 @@ const BigInteger operator^(const BigInteger& left, const BigInteger& right){
   }
   i+=right.data[0];
   ans.data[0] = 1;
-  while(i && !ans.flag){
+  while(i && !ans.flag && !cur.flag){
     if(i & 1){
       ans = ans * cur;
     }
     cur = cur * cur;
     i>>=1;
+  }
+  if(cur.flag){
+    ans.flag = 1;
   }
   return ans;
 }
