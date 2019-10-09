@@ -437,6 +437,7 @@ const BigInteger operator/(const BigInteger& left, const BigInteger& right){
 int main(){
   BigInteger a, b;
   char op;
+  // reading BigIntegers
   while(1){
     if(cin.peek() == EOF){
       break;
