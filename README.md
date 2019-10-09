@@ -3,8 +3,8 @@
 
 All directories includes 'main.cpp' or 'main.c' file with program realisation of personal exercise, 
 file with task description and 'report.pdf' file with description of solution and work. 
-Also `report.pdf` include * compile * instruction and * run * demonstration.
+Also `report.pdf` include *compile* instruction and *run* demonstration.
 
 Some directories includes test file for work demonstration or test generator.
 
-##### <center> Made by Max Bronnikov <\center>
+##### <center> Made by Max Bronnikov </center>
