@@ -3,8 +3,8 @@
 #include <fstream>
 #include <climits>
 
-#define N 1000
-#define M 1000
+#define N 8
+#define M 6
 
 int main(){
   std::ofstream file;
