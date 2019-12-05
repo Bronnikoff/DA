@@ -147,7 +147,7 @@ void Error(short unsigned int e){
 
 short unsigned int Tree_Insert(Node* t, char* k, short unsigned int si, TVal val){
   if(!t->size){ // если дерево пусто, то создаем голову
-    t->head = malloc(sizeof(BRTree) + si);
+    t->head = (BRTree*)malloc(sizeof(BRTree) + si);
     if(!t->head){
       return 2;
     }
@@ -182,7 +182,7 @@ short unsigned int Tree_Insert(Node* t, char* k, short unsigned int si, TVal val
     }
   }
   // making Item
-  BRTree* n = malloc(sizeof(BRTree) + si);
+  BRTree* n = (BRTree*)malloc(sizeof(BRTree) + si);
   if(!n){
     return 2;
   }
@@ -549,7 +549,7 @@ short unsigned int Load_Tree(Node* t, char* path){
   }
   BRTree* h;
   Node newtr;
-  newtr.head = h = malloc(sizeof(BRTree) + j);
+  newtr.head = h = (BRTree*)malloc(sizeof(BRTree) + j);
   if(!newtr.head){
     fclose(f);
     return 2;
@@ -583,7 +583,7 @@ short unsigned int Load_Tree(Node* t, char* path){
           break;
         }
       }
-      h = h->right = malloc(sizeof(BRTree) + j);
+      h = h->right = (BRTree*)malloc(sizeof(BRTree) + j);
       if(!h){
         Destroy_Tree(&newtr);
         fclose(f);
@@ -614,7 +614,7 @@ short unsigned int Load_Tree(Node* t, char* path){
           break;
         }
       }
-      h = h->left = malloc(sizeof(BRTree) + j);
+      h = h->left = (BRTree*)malloc(sizeof(BRTree) + j);
       if(!h){
         Destroy_Tree(&newtr);
         fclose(f);
