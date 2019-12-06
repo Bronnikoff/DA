@@ -82,17 +82,28 @@ void Arhivator::start(){
 void Arhivator::encode_file(const string& path){
     cout << "encode: ";
     cout << path << endl;
-    Compressor* cmp;
-    string tmpname = tmpnam(nullptr);
-    ifstream input_file(path, ios::in | ios::binary);
-    
-    // 1 step
-    ofstream tmp1(tmpname + ".1", ios::out | ios::binary);
-    cmp = new BWT();
-    // 2 step
-    // 3 step
-    // 4 step
+    ifstream inpt(path, ios::in | ios::binary);
+    if(!inpt){
+        throw MyException(path + " is not a file");
+    }
+    if(!stdoutput){
+        ofstream otpt(path + ".gz", ios::out | ios::binary);
+        encode_stream(inpt, otpt);
+        otpt.close();
+        if(!keep){
+            remove(path.c_str());
+        }
+    }else{
+        encode_stream(inpt, cout);
+    }
 }
+
+
+
+////////////////////////////////////////////////////
+/////////////////// READY //////////////////////////
+////////////////////////////////////////////////////
+
 
 // will coding streams: 
 // is - stream of input file(or stdin), os -steam of output file(or stdout)

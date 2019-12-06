@@ -48,7 +48,7 @@ void Compressor::encode(){
         // if read less thn max_size
         if(is->gcount() < max_buffer_size){
             in_buffer.resize(is->gcount());
-            until_size += is->gcount;
+            until_size += is->gcount();
         }else{
             until_size += max_buffer_size;
         }
@@ -63,6 +63,7 @@ void Compressor::encode(){
         os->write(reinterpret_cast<const char*>(&size_to_write), sizeof(uint32_t));
         os->write(out_buffer.c_str(), size_to_write);
         after_size += size_to_write + sizeof(uint32_t);
+        out_buffer.clear();
     }
 }
 
@@ -83,6 +84,7 @@ void Compressor::decode(){
         uint32_t size_to_write = out_buffer.size();
         os->write(out_buffer.c_str(), size_to_write);
         after_size += size_to_write;
+        out_buffer.clear();
     }
 }
 

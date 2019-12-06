@@ -5,7 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <exception> // для std::exception
-#include "Compressor.hpp"
+#include "Compressors/Compressor.hpp"
 #include "RLE/RLE.hpp"
 #include "MTF/MTF.hpp"
 #include "Huffman/Huffman.hpp"
@@ -63,7 +63,7 @@ class Arhivator{
         bool check; // -t
         bool information; // -l
 
-        uint32_t max_size_buffer = 10000000; // size of bufer for excange and hash counting
+        uint32_t max_size_buffer = 4194304; // size of bufer for excange and hash counting
         string path; // file or directory path
         const string prefix = "\3\2\1\0"; // for check format
 

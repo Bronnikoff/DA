@@ -8,11 +8,11 @@ using namespace std;
 // This Demo equal light version of gzip
 int main(int argc, char const *argv[])
 {
-    /*if(argc < 2){
+    if(argc < 2){
         cout << "gzip: compressed data not written to a terminal." << endl;
         cout << "For help, type: gzip -h" << endl;
         return 0;
-    }*/
+    }
     bool worked = false;
     Arhivator arhive;
     try{
@@ -22,37 +22,21 @@ int main(int argc, char const *argv[])
                 switch (argv[i][1])
                 {
                 case 'd':
-                    cout << "decode" << endl;
-                    arhive.set_decode();
-                    break;
+
                 case '1':
-                    cout << "easy" << endl;
-                    arhive.set_easy();
-                    break;
+
                 case '9':
-                    cout << "hard" << endl;
-                    arhive.set_easy();
-                    break;       
+     
                 case 'l':
-                    cout << "infrm" << endl;
-                    arhive.set_information();
-                    break;
+
                 case 't':
-                    cout << "check" << endl;
-                    arhive.set_check();
-                    break;          
+        
                 case 'c':
-                    cout << "stdout" << endl;
-                    arhive.set_stdoutput();
-                    break;
+
                 case 'k': 
-                    cout << "keep" << endl;
-                    arhive.set_keep();
-                    break;
+                    
                 case '\0': 
-                    cout << "NO FILE" << endl;
-                    worked = true;
-                    arhive.start();
+
                 default:
                     break;
                 }

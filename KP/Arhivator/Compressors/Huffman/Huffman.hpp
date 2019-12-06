@@ -12,6 +12,13 @@
 
 using namespace std;
 
+////////////////////////////////////////////////
+///////////// HUFFMAN ENCODE READY /////////////
+////////////////////////////////////////////////
+
+
+
+
 class Huffman : public Compressor{
     public:
         Huffman();
@@ -21,7 +28,6 @@ class Huffman : public Compressor{
         void buffer_encode() override;
         void buffer_decode() override;
     private:
-        // map<char, uint32_t> table_of_counts;
         typedef struct Node{
             struct Node* left;
             struct Node* right;
@@ -45,8 +51,7 @@ class Huffman : public Compressor{
         void tree_write(node* obj); // write tree in output
         void count_table(map<char, uint32_t>& table_of_counts); // count simbols
         void create_encode_table(map<char, vector<uint8_t>>& encode_table);
-        void depth_walker(node* obj ,vector<uint8_t>& vec, map<char, vector<uint8_t>>& mp);
-        
+        void depth_walker(node* obj ,vector<uint8_t>& vec, map<char, vector<uint8_t>>& mp);  
 };
 
 

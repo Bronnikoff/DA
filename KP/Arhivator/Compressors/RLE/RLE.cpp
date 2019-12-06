@@ -2,6 +2,10 @@
 
 using namespace std;
 
+// TO DO
+
+// change algo for do possible count and insert numbers more than 127
+
 RLE::RLE() : Compressor(){}
 
 RLE::RLE(istream& inpt, ostream& otpt) : Compressor(inpt, otpt){}
