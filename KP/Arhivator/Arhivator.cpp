@@ -5,7 +5,7 @@ using namespace std;
 
 Arhivator::Arhivator(){
     stdinput = true;
-    decod = false;
+    decode = false;
     stdoutput = false;
     hard = false;
     easy = false;
@@ -20,15 +20,19 @@ void Arhivator::set_stdoutput(){
     stdoutput = true;
 }
 
-void Arhivator::set_path(string str){
+void Arhivator::set_path(string& str){
     path = str;
-    stdinput = false;
+    if(str.empty()){
+        stdinput = true;
+    }else{
+        stdinput = false;
+    }
 }
 
 void Arhivator::set_hard(){
     hard = true;
     if(easy){
-        easy = false;
+        hard = false;
     }
 }
 
@@ -56,7 +60,7 @@ void Arhivator::set_keep(){
 }
 
 void Arhivator::set_decode(){
-    decod = true;
+    decode = true;
 }
 
 void Arhivator::start(){
@@ -64,22 +68,29 @@ void Arhivator::start(){
         stdoutput = true;
     }
     if(information){
-        throw MyException("Not Ready Yet");
+        if(stdinput){
+            check_info(cin);
+        }else{
+            ifstream is(path, ios::in | ios::binary);
+            if(!is){
+                throw MyException(path + " not a file");
+            }
+            check_info(is);
+            is.close();
+        }
+        return;
     }
     if(recursive){
         throw MyException("Not Ready Yet");
     }
-    if(keep){
-        throw MyException("Not Ready Yet");
-    }
-    if(decod){
+    if(decode){
         decode_file(path);
     }else{
         encode_file(path);
     }
 }
 
-void Arhivator::encode_file(const string& path){
+void Arhivator::encode_file(string& path){
     cout << "encode: ";
     cout << path << endl;
     ifstream inpt(path, ios::in | ios::binary);
@@ -95,7 +106,53 @@ void Arhivator::encode_file(const string& path){
         }
     }else{
         encode_stream(inpt, cout);
+        if(!keep){
+            remove(path.c_str());
+        }
     }
+}
+
+void Arhivator::decode_file(string& path){
+    cout << "decode: ";
+    cout << path << endl;
+    string suf = path.substr(path.size() - 3, 3);
+    if(suf != ".gz"){
+        throw MyException(path + " has unknown suffix");
+    }
+    ifstream inpt(path, ios::in | ios::binary);
+    if(!inpt){
+        throw MyException(path + " is not a file");
+    }
+    if(!stdoutput){
+        ofstream otpt(path.substr(0, path.size() - 3), ios::out | ios::binary | ios::trunc);
+        decode_stream(inpt, otpt);
+        otpt.close();
+        if(!keep){
+            remove(path.c_str());
+        }
+    }else{
+        decode_stream(inpt, cout);
+        if(!keep){
+            remove(path.c_str());
+        }
+    }
+}
+
+void Arhivator::check_info(istream& is){
+    string pre;
+    pre.resize(prefix.size());
+    uint64_t old_size, new_size;
+    is.read(&pre[0], prefix.size());
+    if(prefix != pre){
+        throw MyException("not in zip format");
+    }
+    is.read(reinterpret_cast<char *>(&old_size), sizeof(uint64_t));
+    is.read(reinterpret_cast<char *>(&new_size), sizeof(uint64_t));
+    cout << "Unompressed size: " << old_size << endl;
+    cout << "Compressed size: " << new_size << endl;
+    cout << "Ratio: " 
+    << 100.0 * static_cast<double>(old_size - new_size) 
+    / static_cast<double>(old_size) << "%" << endl; 
 }
 
 

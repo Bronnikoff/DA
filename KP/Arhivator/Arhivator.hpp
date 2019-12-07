@@ -6,10 +6,10 @@
 #include <fstream>
 #include <exception> // для std::exception
 #include "Compressors/Compressor.hpp"
-#include "RLE/RLE.hpp"
-#include "MTF/MTF.hpp"
-#include "Huffman/Huffman.hpp"
-#include "BWT/BWT.hpp"
+#include "Compressors/RLE/RLE.hpp"
+#include "Compressors/MTF/MTF.hpp"
+#include "Compressors/Huffman/Huffman.hpp"
+#include "Compressors/BWT/BWT.hpp"
 
 using namespace std;
 
@@ -33,7 +33,7 @@ class Arhivator{
         Arhivator();
         void set_decode();
         void set_stdoutput();
-        void set_path(string str);
+        void set_path(string& str);
         void set_hard();
         void set_easy();
         void set_keep();
@@ -43,10 +43,11 @@ class Arhivator{
         void start();
 
     private:
-        void decode_file(const string& path);
-        void encode_file(const string& path);
-        void decode_dir(const string& path);
-        void encode_dir(const string& path);
+        void decode_file(string& path);
+        void encode_file(string& path);
+        void check_info(istream& is);
+        // void decode_dir(const string& path);
+        // void encode_dir(const string& path);
         void encode_stream(istream& is, ostream& os);
         void decode_stream(istream& is, ostream& os);
         void from_stream_to_stream(istream& is, ostream& os);
@@ -54,12 +55,13 @@ class Arhivator{
         bool check_zip(istream& is);
 
         bool stdinput; // without filename
+
         bool stdoutput; // -c
         bool hard; // -9
         bool easy; // -1
         bool keep; // -k
         bool recursive; // -r
-        bool decod;
+        bool decode; // -d
         bool check; // -t
         bool information; // -l
 

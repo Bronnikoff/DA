@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <queue>
 
 using namespace std;
@@ -14,15 +15,10 @@ using namespace std;
         }comparator;
 
 int main(){
-    priority_queue<node, vector<node>, comparator> que;
-    for(int i = 0; i < 26; ++i){
-        que.push(node{i, 'a' + i});
-    }
-    for(int i = 0; i < 26; ++i){
-        node n = que.top();
-        que.pop();
-        cout << n.count << " : " << n.value << endl;
-    }
 
+    ifstream is("uin.cpp", ios::in | ios::binary);
+    if(!is){
+        cout << "Error of open" << endl;
+    }
     return 0;
 }
