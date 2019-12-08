@@ -1,7 +1,7 @@
-all: gzzip
+all: KP
 
-gzzip: Compressor.o Arhivator.o RLE.o BWT.o Huffman.o MTF.o main.o
-	g++ Compressor.o Arhivator.o RLE.o BWT.o Huffman.o MTF.o main.o -o gzzip
+KP: Compressor.o Arhivator.o RLE.o BWT.o Huffman.o MTF.o main.o
+	g++ Compressor.o Arhivator.o RLE.o BWT.o Huffman.o MTF.o main.o -o KP
 	rm -rf *.o
 
 main.o: main.cpp

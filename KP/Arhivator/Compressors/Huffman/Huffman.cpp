@@ -30,13 +30,13 @@ void Huffman::buffer_decode(){
     // counter of simbols needs for stop decode
     uint32_t j = 0; 
     int32_t it = tree;
-    for(; i < in_buffer.size() && j < size; ++i){
+    for(; i < in_buffer.size(); ++i){
         // reading byte of information:
         uint8_t bits_of_code = in_buffer[i];
         // create mask for reading bits
         uint8_t mask = 1 << 7; // 10000000
         // reading bits
-        for(uint8_t k = 0; k < 8; ++k){
+        for(uint8_t k = 0; k < 8 && j < size; ++k){
             // if bit - 1 => go right
             if(bits_of_code & mask){
                 it = vertex[it].right;
@@ -96,6 +96,8 @@ void Huffman::buffer_encode(){
     out_buffer.push_back(static_cast<char>(byte3));
 
     out_buffer.push_back(static_cast<char>(byte4));
+
+    //cout << out_buffer.size() << endl;
 
 
     // ENCODING:

@@ -80,13 +80,35 @@ void Arhivator::start(){
         }
         return;
     }
+    if(check){
+        if(stdinput){
+            check_zip(cin);
+        }else{
+            ifstream is(path, ios::in | ios::binary);
+            if(!is){
+                throw MyException(path + " not a file");
+            }
+            if(check_zip(is)){
+                cout << "True" << endl;
+            }else{
+                cout << "False" << endl;
+            }
+            is.close();
+        }
+        return;
+    }
     if(recursive){
+        throw MyException("Not Ready Yet");
+    }
+    if(hard || easy){
         throw MyException("Not Ready Yet");
     }
     if(decode){
         decode_file(path);
+        return;
     }else{
         encode_file(path);
+        return;
     }
 }
 
@@ -119,6 +141,7 @@ void Arhivator::decode_file(string& path){
     if(!inpt){
         throw MyException(path + " is not a file");
     }
+    
     if(!stdoutput){
         ofstream otpt(path.substr(0, path.size() - 3), ios::out | ios::binary | ios::trunc);
         decode_stream(inpt, otpt);
@@ -144,6 +167,9 @@ void Arhivator::check_info(istream& is){
     }
     is.read(reinterpret_cast<char *>(&old_size), sizeof(uint64_t));
     is.read(reinterpret_cast<char *>(&new_size), sizeof(uint64_t));
+    if(!is || !check_hash(is)){
+        throw MyException("not in zip format");
+    }
     cout << "Unompressed size: " << old_size << endl;
     cout << "Compressed size: " << new_size << endl;
     cout << "Ratio: " 
@@ -162,7 +188,7 @@ void Arhivator::check_info(istream& is){
 // is - stream of input file(or stdin), os -steam of output file(or stdout)
 void Arhivator::encode_stream(istream& is, ostream& os){
     Compressor* cmp;
-    string tmpnm = "tmpfile1";
+    string tmpnm = path;
     string file1 = tmpnm + ".1";
     string file2 = tmpnm + ".2";
     string file3 = tmpnm + ".3";
@@ -191,7 +217,7 @@ void Arhivator::encode_stream(istream& is, ostream& os){
     delete cmp;
     tmp_in.close();
     tmp_out.close();
-    //remove(file1.c_str());
+    remove(file1.c_str());
 
     // 3 step
     tmp_in.open(file2, ios::in | ios::binary);
@@ -201,7 +227,7 @@ void Arhivator::encode_stream(istream& is, ostream& os){
     delete cmp;
     tmp_in.close();
     tmp_out.close();
-    //remove(file2.c_str());
+    remove(file2.c_str());
 
     // 4 step
     tmp_in.open(file3, ios::in | ios::binary);
@@ -213,7 +239,7 @@ void Arhivator::encode_stream(istream& is, ostream& os){
     delete cmp;
     tmp_in.close();
     tmp_out.close();
-    //remove(file3.c_str());
+    remove(file3.c_str());
 
     // gen and add info into output
     // 1 - add constant prefix for check gzip format
@@ -237,12 +263,12 @@ void Arhivator::encode_stream(istream& is, ostream& os){
     from_stream_to_stream(tmp_in, os);
     // and remove old file
     tmp_in.close();
-    //remove(file4.c_str());
+    remove(file4.c_str());
 }
 
 void Arhivator::decode_stream(istream& is, ostream& os){
     Compressor* cmp;
-    string tmpnm = "tmpfile2";
+    string tmpnm = path;
     string file0 = tmpnm + ".0";
     string file1 = tmpnm + ".1";
     string file2 = tmpnm + ".2";
@@ -284,7 +310,7 @@ void Arhivator::decode_stream(istream& is, ostream& os){
     delete cmp;
     tmp_out.close(); // TODO exceptions
     tmp_in.close();
-    //remove(file0.c_str());
+    remove(file0.c_str());
 
     // 2 step
     tmp_in.open(file1, ios::in | ios::binary);
@@ -294,7 +320,7 @@ void Arhivator::decode_stream(istream& is, ostream& os){
     delete cmp;
     tmp_in.close();
     tmp_out.close();
-    //remove(file1.c_str());
+    remove(file1.c_str());
 
     // 3 step
     tmp_in.open(file2, ios::in | ios::binary);
@@ -304,7 +330,7 @@ void Arhivator::decode_stream(istream& is, ostream& os){
     delete cmp;
     tmp_in.close();
     tmp_out.close();
-    //remove(file2.c_str());
+    remove(file2.c_str());
 
     // 4 step decoding in output
     tmp_in.open(file3, ios::in | ios::binary);
@@ -312,7 +338,16 @@ void Arhivator::decode_stream(istream& is, ostream& os){
     cmp->decode();
     delete cmp;
     tmp_in.close();
-    //remove(file3.c_str());
+    remove(file3.c_str());
+}
+
+bool Arhivator::check_hash(istream& is){
+    uint32_t hash_f = 0;
+    if(is){
+        is.read(reinterpret_cast<char*>(&hash_f), sizeof(uint32_t));
+    }
+    uint32_t hash_c = hash_count(is);
+    return hash_f == hash_c;
 }
 
 bool Arhivator::check_zip(istream& is){
@@ -331,12 +366,7 @@ bool Arhivator::check_zip(istream& is){
     if(is){
         is.read(reinterpret_cast<char*>(&placebo), sizeof(uint64_t));
     }
-    uint32_t hash_f = 0;
-    if(is){
-        is.read(reinterpret_cast<char*>(&hash_f), sizeof(uint32_t));
-    }
-    uint32_t hash_c = hash_count(is);
-    return hash_f == hash_c;
+    return check_hash(is);
 }
 
 uint32_t Arhivator::hash_count(istream& is){

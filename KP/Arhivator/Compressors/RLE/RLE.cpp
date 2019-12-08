@@ -32,6 +32,7 @@ void RLE::buffer_encode(){
             ++count;
             // if num of repeats until this char = 127 => push back this info and go next
             if(count == INT8_MAX){
+                //cout << "here" << endl;
                 out_buffer.push_back(static_cast<char>(count));
                 out_buffer.push_back(last_ch);
                 count = 0;
@@ -50,6 +51,7 @@ void RLE::buffer_encode(){
                 --count;
                 buffer.push_back(last_ch);
                 if (count == INT8_MIN){
+                    //cout << "ws" << endl;
                     out_buffer.push_back(static_cast<char>(count));
                     out_buffer += buffer;
                     buffer.clear();

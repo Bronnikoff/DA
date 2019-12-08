@@ -52,6 +52,7 @@ class Arhivator{
         void decode_stream(istream& is, ostream& os);
         void from_stream_to_stream(istream& is, ostream& os);
         uint32_t hash_count(istream& is);
+        bool check_hash(istream& is);
         bool check_zip(istream& is);
 
         bool stdinput; // without filename
