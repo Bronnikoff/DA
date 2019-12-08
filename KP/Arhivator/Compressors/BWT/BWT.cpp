@@ -13,8 +13,13 @@ BWT::BWT(istream* inpt, ostream* otpt) : Compressor(inpt, otpt){}
 // O(nlogn) construct from https://e-maxx.ru/algo/suffix_array
 // it will array of sorted cyclics - GREAT
 
+uint32_t BWT::count_karkainen_sanders(vector<uint32_t>& array){
+    
+}
+
 uint32_t BWT::count_suff_array(vector<uint32_t>& array){
     uint32_t n = in_buffer.size();
+    array.resize(n);
     const uint32_t alphabet = 256;
 
     // equalent classes 
@@ -24,20 +29,20 @@ uint32_t BWT::count_suff_array(vector<uint32_t>& array){
     // help vectors
     vector<uint32_t> pn(n), cn(n);
 
-    // pn - sort positions of second parts of new substrings
+    // pn - sorted positions of second parts of new substrings
     // cn - new classes of equality
 
     // we coding in_buffer fully
     vector<uint32_t> cnt(alphabet, 0);
     // 0 phase - sort chars in string with count sort
     for(uint32_t i = 0; i < n; ++i){
-        ++cnt[in_buffer[i]];
+        ++cnt[static_cast<uint8_t>(in_buffer[i])];
     }
     for(uint32_t i = 1; i < alphabet; ++i){
         cnt[i] += cnt[i - 1];
     }
     for(uint32_t i = 0; i < n; ++i){
-        array[--cnt[in_buffer[i]]] = i;
+        array[--cnt[static_cast<uint8_t>(in_buffer[i])]] = i;
     }
     c[array[0]] = 0;
     
@@ -47,6 +52,7 @@ uint32_t BWT::count_suff_array(vector<uint32_t>& array){
         }
         c[array[i]] = classes;
     }
+    ++classes;
 
     // all another k phases (k = h + 1)
 
@@ -59,7 +65,7 @@ uint32_t BWT::count_suff_array(vector<uint32_t>& array){
             pn[i] = array[i] < (1u << h) ? array[i] + (n - (1 << h)) : array[i] - (1 << h);
         }
 
-        cnt.assign(n, 0);
+        cnt.assign(classes, 0);
 
         // and count sort by first positions
         for(uint32_t i = 0; i < n; ++i){
@@ -72,12 +78,15 @@ uint32_t BWT::count_suff_array(vector<uint32_t>& array){
             array[--cnt[c[pn[i]]]] = pn[i];
         }
         array[--cnt[c[pn[0]]]] = pn[0];
-        cn[pn[0]] = 0;
+
+
+        cn[array[0]] = 0;
         classes = 0;
+
         // define classes of equlity
         for(uint32_t i = 1; i < n; ++i){
             // mid - second position of new strings
-            uint32_t mid1 = array[i] + (1u << h) >= n ? 
+            uint32_t mid1 = (array[i] + (1u << h)) >= n ? 
                 array[i] + (1u << h) - n : 
                 array[i] + (1u << h); 
             uint32_t mid2 = array[i - 1] + (1u << h) >= n ? 
@@ -89,6 +98,7 @@ uint32_t BWT::count_suff_array(vector<uint32_t>& array){
             }
             cn[array[i]] = classes;
         }
+        ++classes;
         c = cn;
     }
     return c[0];
@@ -98,20 +108,22 @@ void BWT::buffer_encode(){
     vector<uint32_t> suf_array;
     position = count_suff_array(suf_array);
     for(uint32_t i = 0; i < in_buffer.size(); ++i){
-        out_buffer.push_back(in_buffer[in_buffer.size() - 1 - suf_array[i]]);
+        if(suf_array[i] > 0){
+            out_buffer.push_back(in_buffer[suf_array[i] - 1]);
+        }else{
+            out_buffer.push_back(in_buffer[in_buffer.size() - 1]);
+        }
     }
-
-    // writing position number at end of output
 
     uint32_t pos = position;
     uint32_t s_mask = 1 << 8; --s_mask; // 00000000000000000000000011111111
 
     uint8_t byte4 = static_cast<uint8_t>(pos & s_mask);
-    pos >>= 4;
+    pos >>= 8;
     uint8_t byte3 = static_cast<uint8_t>(pos & s_mask);
-    pos >>= 4;
+    pos >>= 8;
     uint8_t byte2 = static_cast<uint8_t>(pos & s_mask);
-    pos >>= 4;
+    pos >>= 8;
     uint8_t byte1 = static_cast<uint8_t>(pos & s_mask);
 
     out_buffer.push_back(static_cast<char>(byte1));
@@ -126,41 +138,40 @@ void BWT::buffer_encode(){
 void BWT::buffer_decode(){
     // Reading position number from end of file and pop this number for stay in_buffer as string for decode
     position = 0;
-    for(uint8_t i = 0; i < 4; ++i){
-        uint8_t byte = static_cast<uint8_t>(in_buffer.back());
-        position |= static_cast<uint32_t>(byte) << i * 8;
-        in_buffer.pop_back(); // Not recomened change in_buffer, but ll for speeeed 
+    for(uint8_t i = 0; i < sizeof(uint32_t); ++i){
+        uint8_t byte = static_cast<uint8_t>(in_buffer[in_buffer.size() - 1 - i]);
+        position |= (static_cast<uint32_t>(byte) << (i * 8));
     }
-    // After that our in_buffer - string for decode without saved position
 
     // DECODE:
     // this algo i get from https://neerc.ifmo.ru/wiki/index.php?title=Преобразование_Барроуза-Уилера
     const uint32_t alphabet = 256;
-    const uint32_t n = in_buffer.size();
+    const uint32_t n = in_buffer.size() - sizeof(uint32_t);
     vector<uint32_t> count(alphabet, 0);
     vector<uint32_t> t(n);
 
     // count sort in_buffer and save positions in t
 
     for(uint32_t i = 0; i < n; ++i){
-        ++count[in_buffer[i]];
+        ++count[static_cast<uint8_t>(in_buffer[i])];
     }
+
     uint32_t sum = 0;
     for(uint32_t i = 0; i < alphabet; ++i){
         sum += count[i];
-        count[i] += sum - count[i];
+        count[i] = sum - count[i];
     }
 
     for(uint32_t i = 0; i < n; ++i){
-        t[count[in_buffer[i]]] = i;
-        ++count[in_buffer[i]];
+        t[count[static_cast<uint8_t>(in_buffer[i])]++] = i;
     }
 
     // decode in_buffer using t in out_buffer
     out_buffer.resize(n);
     uint32_t j = t[position];
     for(uint32_t i = 0; i < n; ++i){
-        out_buffer[i] = in_buffer[i];
+        out_buffer[i] = in_buffer[j];
         j = t[j];
     }
 }
+

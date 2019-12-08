@@ -42,9 +42,10 @@ void Compressor::encode(){
     // alloc need memory
     in_buffer.resize(max_buffer_size);
 
-    while (*is){
+    while (*is && is->peek() != EOF){
         // read full buffer for encode
         is->read(&in_buffer[0], max_buffer_size);
+        cout << "SIZE READ:" << is->gcount() << endl;
         // if read less thn max_size
         if(is->gcount() < max_buffer_size){
             in_buffer.resize(is->gcount());
@@ -68,12 +69,15 @@ void Compressor::encode(){
 }
 
 void Compressor::decode(){
-    while(*is){
+    while(*is && is->peek() != EOF){
         // Reading buffer size and buffer from input for decode
         uint32_t size_to_read = 0;
         is->read(reinterpret_cast<char *>(&size_to_read), sizeof(uint32_t));
+        cout << "G:" << is->gcount() << endl;
+
         in_buffer.resize(size_to_read);
         is->read(&in_buffer[0], size_to_read);
+        cout << "SIZE READ:" << is->gcount() << endl;
         until_size += size_to_read + sizeof(uint32_t);
 
         // decoding

@@ -91,8 +91,6 @@ void Arhivator::start(){
 }
 
 void Arhivator::encode_file(string& path){
-    cout << "encode: ";
-    cout << path << endl;
     ifstream inpt(path, ios::in | ios::binary);
     if(!inpt){
         throw MyException(path + " is not a file");
@@ -113,8 +111,6 @@ void Arhivator::encode_file(string& path){
 }
 
 void Arhivator::decode_file(string& path){
-    cout << "decode: ";
-    cout << path << endl;
     string suf = path.substr(path.size() - 3, 3);
     if(suf != ".gz"){
         throw MyException(path + " has unknown suffix");
@@ -165,9 +161,8 @@ void Arhivator::check_info(istream& is){
 // will coding streams: 
 // is - stream of input file(or stdin), os -steam of output file(or stdout)
 void Arhivator::encode_stream(istream& is, ostream& os){
-    cout << "encode stream" << endl;
     Compressor* cmp;
-    string tmpnm = tmpnam(nullptr);
+    string tmpnm = "tmpfile1";
     string file1 = tmpnm + ".1";
     string file2 = tmpnm + ".2";
     string file3 = tmpnm + ".3";
@@ -196,7 +191,7 @@ void Arhivator::encode_stream(istream& is, ostream& os){
     delete cmp;
     tmp_in.close();
     tmp_out.close();
-    remove(file1.c_str());
+    //remove(file1.c_str());
 
     // 3 step
     tmp_in.open(file2, ios::in | ios::binary);
@@ -206,7 +201,7 @@ void Arhivator::encode_stream(istream& is, ostream& os){
     delete cmp;
     tmp_in.close();
     tmp_out.close();
-    remove(file2.c_str());
+    //remove(file2.c_str());
 
     // 4 step
     tmp_in.open(file3, ios::in | ios::binary);
@@ -218,7 +213,7 @@ void Arhivator::encode_stream(istream& is, ostream& os){
     delete cmp;
     tmp_in.close();
     tmp_out.close();
-    remove(file3.c_str());
+    //remove(file3.c_str());
 
     // gen and add info into output
     // 1 - add constant prefix for check gzip format
@@ -233,20 +228,21 @@ void Arhivator::encode_stream(istream& is, ostream& os){
     tmp_in.open(file4, ios::in | ios::binary);
     hash_c = hash_count(tmp_in);
     // return to start pos
-    tmp_in.seekg(0, ios::beg);
+    tmp_in.close();
+
     os.write(reinterpret_cast<const char*>(&hash_c), sizeof(uint32_t));
 
     // 5 - insert encoed data at least of file
+    tmp_in.open(file4, ios::in | ios::binary);
     from_stream_to_stream(tmp_in, os);
     // and remove old file
     tmp_in.close();
-    remove(file4.c_str());
+    //remove(file4.c_str());
 }
 
 void Arhivator::decode_stream(istream& is, ostream& os){
-    cout << "decode stream" << endl;
     Compressor* cmp;
-    string tmpnm = tmpnam(nullptr);
+    string tmpnm = "tmpfile2";
     string file0 = tmpnm + ".0";
     string file1 = tmpnm + ".1";
     string file2 = tmpnm + ".2";
@@ -269,6 +265,11 @@ void Arhivator::decode_stream(istream& is, ostream& os){
         throw MyException("not a zip formt");
     }
 
+    tmp_in.close();
+
+
+    tmp_in.open(file0, ios::in | ios::binary);
+
     tmp_in.seekg(2*sizeof(uint64_t) + prefix.size() + sizeof(uint32_t), ios::beg);
 
 
@@ -283,7 +284,7 @@ void Arhivator::decode_stream(istream& is, ostream& os){
     delete cmp;
     tmp_out.close(); // TODO exceptions
     tmp_in.close();
-    remove(file0.c_str());
+    //remove(file0.c_str());
 
     // 2 step
     tmp_in.open(file1, ios::in | ios::binary);
@@ -293,7 +294,7 @@ void Arhivator::decode_stream(istream& is, ostream& os){
     delete cmp;
     tmp_in.close();
     tmp_out.close();
-    remove(file1.c_str());
+    //remove(file1.c_str());
 
     // 3 step
     tmp_in.open(file2, ios::in | ios::binary);
@@ -303,7 +304,7 @@ void Arhivator::decode_stream(istream& is, ostream& os){
     delete cmp;
     tmp_in.close();
     tmp_out.close();
-    remove(file2.c_str());
+    //remove(file2.c_str());
 
     // 4 step decoding in output
     tmp_in.open(file3, ios::in | ios::binary);
@@ -311,7 +312,7 @@ void Arhivator::decode_stream(istream& is, ostream& os){
     cmp->decode();
     delete cmp;
     tmp_in.close();
-    remove(file3.c_str());
+    //remove(file3.c_str());
 }
 
 bool Arhivator::check_zip(istream& is){

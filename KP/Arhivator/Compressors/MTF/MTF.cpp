@@ -15,8 +15,8 @@ MTF::MTF(istream* inpt, ostream* otpt) : Compressor(inpt, otpt){}
 void MTF::buffer_encode(){
     alfabet.clear();
     // init alfabet
-    for(uint8_t i = 0; i < 256; ++i){
-        alfabet.push_back(i);
+    for(uint16_t i = 0; i < 256; ++i){
+        alfabet.push_back(static_cast<uint8_t>(i));
     }
 
     // ENCODE:
@@ -34,8 +34,8 @@ void MTF::buffer_encode(){
 void MTF::buffer_decode(){
     alfabet.clear();
     // init alfabet:
-    for(uint8_t i = 0; i < 256; ++i){
-        alfabet.push_back(i);
+    for(uint16_t i = 0; i < 256; ++i){
+        alfabet.push_back(static_cast<uint8_t>(i));
     }
 
     // DECODE:
@@ -55,6 +55,7 @@ uint8_t MTF::move_to_front_encode(uint8_t c){
     for (auto it = alfabet.begin(); ; ++it, ++i){
         if(*it == c){
             alfabet.erase(it);
+            break;
         }
     }
     alfabet.push_front(c);

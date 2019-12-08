@@ -29,29 +29,30 @@ class Huffman : public Compressor{
         void buffer_decode() override;
     private:
         typedef struct Node{
-            struct Node* left;
-            struct Node* right;
+            int32_t left;
+            int32_t right;
             uint32_t count;
             char value; // has value only if list, else it rubish
         }node;
+    
         // comparator for priority queue
         typedef struct functor{
-            bool operator()(const node* lhs, const node* rhs){
-                return lhs->count > rhs->count;
+            bool operator()(const pair<int32_t, uint32_t> lhs, const pair<int32_t, uint32_t> rhs){
+                return lhs.second > rhs.second;
             }
         }comparator;
 
         // TREE (too lazy create new structure):
-        node* tree = nullptr; // root
+        int32_t tree = -1; // root
         vector<node> vertex; // vector of vertexes of tree
         // AND OF TREE
         
         void tree_create(); // create tree of encoding
         void tree_from_input(uint32_t& i); // create tree from input for decoding
-        void tree_write(node* obj); // write tree in output
+        void tree_write(int32_t obj); // write tree in output
         void count_table(map<char, uint32_t>& table_of_counts); // count simbols
         void create_encode_table(map<char, vector<uint8_t>>& encode_table);
-        void depth_walker(node* obj ,vector<uint8_t>& vec, map<char, vector<uint8_t>>& mp);  
+        void depth_walker(int32_t obj ,vector<uint8_t>& vec, map<char, vector<uint8_t>>& mp);  
 };
 
 

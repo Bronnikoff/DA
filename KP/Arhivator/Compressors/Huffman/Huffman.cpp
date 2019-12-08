@@ -11,7 +11,7 @@ Huffman::Huffman(istream* inpt, ostream* otpt) : Compressor(inpt, otpt){}
 
 
 void Huffman::buffer_decode(){
-    tree = nullptr;
+    tree = -1;
     vertex.clear();
     uint32_t i = 0;
     // get tree from input
@@ -29,7 +29,7 @@ void Huffman::buffer_decode(){
     // DECODE:
     // counter of simbols needs for stop decode
     uint32_t j = 0; 
-    Huffman::node* it = tree;
+    int32_t it = tree;
     for(; i < in_buffer.size() && j < size; ++i){
         // reading byte of information:
         uint8_t bits_of_code = in_buffer[i];
@@ -39,14 +39,14 @@ void Huffman::buffer_decode(){
         for(uint8_t k = 0; k < 8; ++k){
             // if bit - 1 => go right
             if(bits_of_code & mask){
-                it = it->right;
+                it = vertex[it].right;
             }else{
             // if bit - 0 => go left
-                it = it->left;
+                it = vertex[it].left;
             }
             // if in list => push decoded simbol in output
-            if(!it->left){
-                out_buffer.push_back(it->value);
+            if(vertex[it].left < 0){
+                out_buffer.push_back(vertex[it].value);
                 // and go back in root
                 it = tree;
                 // apdate counter of simbols
@@ -60,7 +60,7 @@ void Huffman::buffer_decode(){
 
 
 void Huffman::buffer_encode(){
-    tree = nullptr;
+    tree = -1;
     vertex.clear();
     // At first create tree for encode
     tree_create();
@@ -69,6 +69,7 @@ void Huffman::buffer_encode(){
     // it simbol for end of tree 
     // cant do without this but too lazy
     out_buffer.push_back('2'); // simbol of tree end
+
     // Create table of simbols codes:
     map<char, vector<uint8_t>> encode_table;
     create_encode_table(encode_table);
@@ -76,20 +77,24 @@ void Huffman::buffer_encode(){
     // Save size of buffer:
 
     uint32_t size = in_buffer.size();
+
     uint32_t s_mask = 1 << 8; --s_mask;
 
     uint8_t byte4 = static_cast<uint8_t>(size & s_mask);
-    size >>= 4;
+    size >>= 8;
     uint8_t byte3 = static_cast<uint8_t>(size & s_mask);
-    size >>= 4;
+    size >>= 8;
     uint8_t byte2 = static_cast<uint8_t>(size & s_mask);
-    size >>= 4;
+    size >>= 8;
     uint8_t byte1 = static_cast<uint8_t>(size & s_mask);
 
 
     out_buffer.push_back(static_cast<char>(byte1));
+
     out_buffer.push_back(static_cast<char>(byte2));
+
     out_buffer.push_back(static_cast<char>(byte3));
+
     out_buffer.push_back(static_cast<char>(byte4));
 
 
@@ -113,28 +118,32 @@ void Huffman::buffer_encode(){
             // if mask - 00000000 => put encoded byte in output and go to encode new byte
             if(!mask){
                 out_buffer.push_back(static_cast<char>(bits_of_code));
+
                 mask = 1 << 7;
                 bits_of_code = 0;
             }
         }
     }
-
+    // if we encoded last simbols but didnt wrote => writing them
+    if(mask < (1 << 7)){ 
+        out_buffer.push_back(static_cast<char>(bits_of_code));
+    }
 }
 
 
 // this function needs for walking in tree and construct code table of simbols  
-void Huffman::depth_walker(Huffman::node* obj ,vector<uint8_t>& vec, map<char, vector<uint8_t>>& mp){
+void Huffman::depth_walker(int32_t obj ,vector<uint8_t>& vec, map<char, vector<uint8_t>>& mp){
     // Wlking in tree and collect way in vector
     // And after that save way for all alfabet simbols 
-    if(obj->left){
+    if(vertex[obj].left >= 0){
         vec.push_back(0);
-        depth_walker(obj->left, vec, mp);
+        depth_walker(vertex[obj].left, vec, mp);
         vec.pop_back();
         vec.push_back(1);
-        depth_walker(obj->right, vec, mp);
+        depth_walker(vertex[obj].right, vec, mp);
         vec.pop_back();
     }else{
-        mp[obj->value] = vec;
+        mp[vertex[obj].value] = vec;
     }
 }
 
@@ -146,23 +155,25 @@ void Huffman::create_encode_table(map<char, vector<uint8_t>>& encode_table){
 }
 
 
-void Huffman::tree_write(Huffman::node* obj){
+void Huffman::tree_write(int32_t obj){
     // Main idea: when we go left put 0
     // when we come to node put value of node
     // when go right put 1 
     // P.S. something like this i made in lab2
 
     // value
-    out_buffer.push_back(obj->value);
-    if(obj->left){
+    out_buffer.push_back(vertex[obj].value);
+
+    if(vertex[obj].left >= 0){
         out_buffer.push_back('0');
-        tree_write(obj->left);
+
+        tree_write(vertex[obj].left);
     }else{
         // if left - null => right - null in our tree
         return;
     }
     out_buffer.push_back('1');
-    tree_write(obj->right);
+    tree_write(vertex[obj].right);
 }
 
 void Huffman::tree_from_input(uint32_t& i){
@@ -175,9 +186,9 @@ void Huffman::tree_from_input(uint32_t& i){
     // (it not good idea may be, but working)
 
     // At first create root:
-    vertex.push_back(Huffman::node{nullptr, nullptr, 0, in_buffer[i++]});
-    tree = &vertex.back();
-    Huffman::node* it = tree;
+    vertex.push_back(Huffman::node{-1, -1, 0, in_buffer[i++]});
+    tree = static_cast<int32_t>(vertex.size() - 1);
+    int32_t it = tree;
 
     // depth walking:
     while(1){
@@ -187,11 +198,11 @@ void Huffman::tree_from_input(uint32_t& i){
         // 3) init left and go
         if(in_buffer[i] == '0'){
             ++i;
-            vertex.push_back(Huffman::node{nullptr, nullptr, static_cast<uint32_t>(vertex.size()-1), in_buffer[i++]});
+            vertex.push_back(Huffman::node{-1, -1, static_cast<uint32_t>(it), in_buffer[i++]});
             // create left
-            it->left = &vertex.back();
+            vertex[it].left = static_cast<int32_t>(vertex.size() - 1);
             // go left
-            it = it->left;
+            it = vertex[it].left;
             continue;
         }
         // if go right:
@@ -202,13 +213,13 @@ void Huffman::tree_from_input(uint32_t& i){
         if(in_buffer[i] == '1'){
             ++i;
             // move up
-            it = &vertex[it->count];
+            it = vertex[it].count;
             // here set father travel
-            vertex.push_back(Huffman::node{nullptr, nullptr, it->count, in_buffer[i++]});
+            vertex.push_back(Huffman::node{-1, -1, vertex[it].count, in_buffer[i++]});
             // create node 
-            it->right = &vertex.back();
+            vertex[it].right = vertex.size() - 1;
             // go right
-            it = it->right;
+            it = vertex[it].right;
         }
         // if read 2 => end of walking
         if(in_buffer[i] == '2'){
@@ -224,35 +235,36 @@ void Huffman::tree_create(){
     count_table(table_of_counts);
 
     // priority queue for Huffman algo(may be not too fast as custom, but create custom lazy)
-    priority_queue<Huffman::node*, vector<Huffman::node*>, comparator> que;
+    //priority_queue<Huffman::node, vector<Huffman::node>, comparator> que;
+    priority_queue<pair<int32_t, uint32_t>, vector<pair<int32_t, uint32_t>>, comparator> que;
 
     // create and insert basic nodes(lists) in queue
     for(auto it : table_of_counts){
-        vertex.push_back(Huffman::node{nullptr, nullptr, it.second, it.first});
-        que.push(&vertex.back());
+        vertex.push_back(Huffman::node{-1, -1, it.second, it.first});
+        que.push(pair<int32_t, uint32_t>(vertex.size()-1, vertex.back().count));
     }
 
     // situation when only 1 simbol in alfabet: will encode all simbols as 0
     // it exception from rule:)
     if(que.size() == 1){
-        vertex.push_back(Huffman::node{nullptr, nullptr, vertex[0].count, static_cast<char>(vertex[0].value+1)});
-        vertex.push_back(Huffman::node{&vertex[0], &vertex[1], vertex[0].count, vertex[0].value});
-        tree = &vertex[2];
+        vertex.push_back(Huffman::node{-1, -1, vertex[0].count, static_cast<char>(vertex[0].value+1)});
+        vertex.push_back(Huffman::node{0, 1, vertex[0].count, vertex[0].value});
+        tree = 2;
         return;
     }
 
     // build tree from queue: itteration while not 1 elem in queue
     while(que.size() > 1){
         // take 2 nodes with less counts
-        Huffman::node* left = que.top(); que.pop();
-        Huffman::node* right = que.top(); que.pop();
+        int32_t left = que.top().first; que.pop();
+        int32_t right = que.top().first; que.pop();
         // create new node with left and right childs
-        vertex.push_back(Huffman::node{left, right, left->count + right->count, left->value});
+        vertex.push_back(Huffman::node{left, right, vertex[left].count + vertex[right].count, vertex[left].value});
         // push new node to queue
-        que.push(&vertex.back());
+        que.push(pair<int32_t, uint32_t>(vertex.size()-1, vertex.back().count));
     }
     
-    tree = que.top();
+    tree = que.top().first;
     que.pop(); // clear queue(not need)
 }
 
