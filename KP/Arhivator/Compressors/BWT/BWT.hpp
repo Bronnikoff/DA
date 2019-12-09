@@ -24,7 +24,6 @@ class BWT : public Compressor{
     private:
         uint32_t position; // position in sorted cyclic table
         uint32_t count_suff_array(vector<uint32_t>& array); // returns position
-        uint32_t count_karkainen_sanders(vector<uint32_t>& array);
 };
 
 

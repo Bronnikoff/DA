@@ -97,7 +97,6 @@ void Huffman::buffer_encode(){
 
     out_buffer.push_back(static_cast<char>(byte4));
 
-    //cout << out_buffer.size() << endl;
 
 
     // ENCODING:
